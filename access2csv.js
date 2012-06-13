@@ -1,11 +1,12 @@
 /*
- * This should be run by cscript.exe
+ * should be run by cscript.exe
  */
 
 var args = WScript.arguments
 
 if(!args.length || args.length < 3) {
-    WScript.echo('Missing arguments')
+    WScript.echo('Usage:')
+    WScript.echo('  cscript access2csv.js <dbPath> <exportFile> [tableNames...]')
     WScript.quit()
 }
 
