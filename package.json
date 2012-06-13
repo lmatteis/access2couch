@@ -1,6 +1,6 @@
 {
     "name": "access2couch",
-    "version": "0.1",
+    "version": "0.0.1",
     "description": "A command-line utility for Windows, that pushes a MS Access database to a CouchDB instance.",
     "author": "Luca Matteis <lmatteis@gmail.com> (http://pseudocodice.com)",
     "keywords": ["ms access", "msaccess", "access", "microsoft access", "couch", "couchdb", "shell", "conversion"],

@@ -6,7 +6,7 @@ var args = WScript.arguments
 
 if(!args.length || args.length < 3) {
     WScript.echo('Usage:')
-    WScript.echo('  cscript access2csv.js <dbPath> <exportFile> [tableNames...]')
+    WScript.echo('  cscript access2csv.js <dbPath> <exportDir> [tableNames...]')
     WScript.quit()
 }
 
