@@ -15,5 +15,10 @@ This tool uses a little script written in JScript simply to convert a MS access 
 
 3. run `npm install -g`
 
-4. Before you run the command, remember that your database will be wiped cleaned everytime. Simply run `access2couch db.mdb http://<username>:<password>@yourcouch.com/dbname`
+4. Before you run the command, remember that your database will be wiped cleaned everytime. Simply run
 
+    Usage:
+      access2couch [MSAccess file-path] [tables...] [couch]
+
+    Example:
+        access2couch forests.mdb Forests Trees http://<username>:<password>@yourcouch.com/dbname
