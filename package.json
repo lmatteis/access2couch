@@ -13,6 +13,7 @@
     },
     "dependencies": {
         "rimraf": "2.0.2",
-        "csv": "0.0.13"
+        "csv": "0.0.13",
+        "felix-couchdb": "1.0.3"
     }
 }

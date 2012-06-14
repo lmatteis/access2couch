@@ -3,7 +3,9 @@
 var fs = require('fs')
 var spawn = require('child_process').spawn
 var rimraf = require('rimraf')
-var csv2json = require('csv2json')
+var couchdb = require('felix-couchdb')
+
+var csv2json = require('./csv2json')
 
 var args = process.argv.slice(2)
 
@@ -30,7 +32,6 @@ console.log('Converting Access tables to CSV files...')
 
 // create folder for csvs
 var csvsFolder = './access2couch_csvs/'
-var jsonOut = csvsFolder + 'out.json'
 rimraf.sync(csvsFolder)
 fs.mkdirSync(csvsFolder)
 
@@ -56,10 +57,24 @@ access2csv.on('exit', function (code) {
         console.log('Successfully converted Access tables to CSV files')
         console.log('Converting CSV files to JSON...')
 
-        var csv = new csv2json(csvsFolder, jsonOut)
+        var csv = new csv2json(csvsFolder)
         var csvs = csv.findCsvs();
-
         console.log('Found ' + csvs.length + ' CSV(s) to parse')
+
+        csv.parse(csvs, function(f) {
+            console.log('Parsing '+f+' ...')
+        }, function(chunk, total) {
+            var couchPort = 5984
+            var couchUrl = 'localhost'
+            var couchDb = 'geosite'
+
+            console.log('Sending a JSON of '+chunk.length+' items to CouchDB, on ' +couchUrl +', port '+couchPort+' and database '+couchDb)
+            var client = couchdb.createClient(couchPort, couchUrl)
+            var db = client.db(couchDb)
+
+            db.bulkDocs(chunk)
+        }, 10000)
+
     }
 })
 

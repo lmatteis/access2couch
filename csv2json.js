@@ -8,9 +8,8 @@ var endsWith = function(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 };
 
-function csv2json(csvsFolder, jsonOut) {
+function csv2json(csvsFolder) {
     this.csvsFolder = csvsFolder
-    this.jsonOut = jsonOut
     this.json = []
 }
 
@@ -24,8 +23,8 @@ csv2json.prototype.findCsvs = function() {
     }
     return ret
 }
-csv2json.prototype.parseFile = function(csvFiles, index, callback) {
-    var that = this
+csv2json.prototype.parseFile = function(csvFiles, index, callback, chunk, chunkSize) {
+    var self = this
     if(csvFiles[index]) {
         var csvFile = this.csvsFolder + csvFiles[index]
         callback(csvFile)
@@ -38,15 +37,22 @@ csv2json.prototype.parseFile = function(csvFiles, index, callback) {
             return data
         })
         .on('data',function(data,index){
-            //console.log('#'+index+' '+JSON.stringify(data))
-            that.json.push(data);
+            // write it in chunk, like every chunkSize rows
+            var remainder = index % chunkSize;
+            if(remainder == 0 && index != 0) { // index is multiple of chunkSize
+                chunk(self.json)
+
+                self.json = [] // flush out memory
+            }
+
+            self.json.push(data);
         })
         .on('end',function(count){
             if(csvFiles[index + 1])
-                this.parseFile(csvFiles, index + 1, callback)
+                self.parseFile(csvFiles, index + 1, callback, chunk, chunkSize)
 
-            if(index == csvFiles.length - 1) { // last file
-                fs.writeFile(that.jsonOut, JSON.stringify(that.json))
+            if(index == csvFiles.length - 1) { // last file, done parsing
+                chunk(self.json, count)
             }
         })
         .on('error',function(error){
@@ -54,17 +60,24 @@ csv2json.prototype.parseFile = function(csvFiles, index, callback) {
         })
     }
 }
-csv2json.prototype.parse = function(csvFiles, callback) {
-    this.parseFile(csvFiles, 0, callback) // recursion, start at 0
+csv2json.prototype.parse = function(csvFiles, callback, chunk, chunkSize) {
+    this.parseFile(csvFiles, 0, callback, chunk, chunkSize) // recursion, start at 0
 }
 
 // tests
+/*
 var csvsFolder = './access2couch_csvs/'
-var jsonOut = csvsFolder + 'out.json'
-var c = new csv2json(csvsFolder, jsonOut)
+var c = new csv2json(csvsFolder)
 
 var csvs = c.findCsvs()
 
+var tot = 0;
 c.parse(csvs, function(f) {
-    console.log('parsing '+f+' into ' + c.jsonOut)
-})
+    console.log('parsing '+f)
+}, function(chunk, total) {
+    tot += chunk.length;
+    console.log('Converted '+tot+' rows into JSON')
+    if(total) 
+        console.log('Finished parsing. Total rows:' +total)
+}, 10000)
+*/
