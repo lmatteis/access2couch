@@ -30,6 +30,7 @@ console.log('Converting Access tables to CSV files...')
 
 // create folder for csvs
 var csvsFolder = './access2couch_csvs/'
+var jsonOut = csvsFolder + 'out.json'
 rimraf.sync(csvsFolder)
 fs.mkdirSync(csvsFolder)
 
@@ -55,9 +56,10 @@ access2csv.on('exit', function (code) {
         console.log('Successfully converted Access tables to CSV files')
         console.log('Converting CSV files to JSON...')
 
-        var csv = new csv2json(csvsFolder)
+        var csv = new csv2json(csvsFolder, jsonOut)
+        var csvs = csv.findCsvs();
 
-        csv.findFiles();
+        console.log('Found ' + csvs.length + ' CSV(s) to parse')
     }
 })
 
