@@ -51,8 +51,9 @@ csv2json.prototype.parseFile = function(csvFiles, index, callback, chunk, chunkS
             if(csvFiles[index + 1])
                 self.parseFile(csvFiles, index + 1, callback, chunk, chunkSize)
 
-            if(index == csvFiles.length - 1) { // last file, done parsing
-                chunk(self.json, count)
+            chunk(self.json, count)
+
+            if(index == csvFiles.length - 1) { // last file, done parsing all files
             }
         })
         .on('error',function(error){

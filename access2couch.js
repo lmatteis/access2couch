@@ -65,14 +65,23 @@ access2csv.on('exit', function (code) {
             console.log('Parsing '+f+' ...')
         }, function(chunk, total) {
             var couchPort = 5984
-            var couchUrl = 'localhost'
+            var couchUrl = '192.168.20.251'
             var couchDb = 'geosite'
 
             console.log('Sending a JSON of '+chunk.length+' items to CouchDB, on ' +couchUrl +', port '+couchPort+' and database '+couchDb)
             var client = couchdb.createClient(couchPort, couchUrl)
             var db = client.db(couchDb)
 
-            db.bulkDocs(chunk)
+            // the _bulk_docs API wants a JSON object with a property
+            // 'docs' which is an array
+            var obj = {}
+            obj.docs = chunk
+            db.bulkDocs(obj, function(er, ok) {
+                if (er) throw new Error(JSON.stringify(er));
+                if(total) {
+                    console.log('Successfully sent '+total+' rows to Couch');
+                }
+            })
         }, 10000)
 
     }
