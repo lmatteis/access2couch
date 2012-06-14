@@ -10,5 +10,9 @@
     },
     "bin": {
         "access2couch": "./access2couch.js"
+    },
+    "dependencies": {
+        "rimraf": "2.0.2",
+        "csv": "0.0.13"
     }
 }

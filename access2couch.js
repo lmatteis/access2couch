@@ -2,6 +2,8 @@
 
 var fs = require('fs')
 var spawn = require('child_process').spawn
+var rimraf = require('rimraf')
+var csv2json = require('csv2json')
 
 var args = process.argv.slice(2)
 
@@ -24,11 +26,12 @@ for(var i=0; i<args.length; i++) {
 }
 
 
-console.log('Converting Access tables to CSV files')
+console.log('Converting Access tables to CSV files...')
 
 // create folder for csvs
 var csvsFolder = './access2couch_csvs/'
-fs.mkdir(csvsFolder)
+rimraf.sync(csvsFolder)
+fs.mkdirSync(csvsFolder)
 
 // build the arguments to pass to access2csv
 var csvArgs = [__dirname + '/access2csv.js', db, csvsFolder]
@@ -39,15 +42,22 @@ for(var i in tableNames) {
 // run access2csv
 var access2csv = spawn('cscript', csvArgs)
 
-access2csv.stdout.on('data', function (data) {    // register one or more handlers
-    console.log('stdout: ' + data);
-});
-
+var csvError = false;
 access2csv.stderr.on('data', function (data) {
-    console.log('stderr: ' + data);
-});
+    csvError = ''+data;
+})
 
 access2csv.on('exit', function (code) {
-    console.log('child process exited with code ' + code);
-});
+    //console.log('child process exited with code ' + code);
+    if(csvError) {
+        console.log(csvError)
+    } else {
+        console.log('Successfully converted Access tables to CSV files')
+        console.log('Converting CSV files to JSON...')
+
+        var csv = new csv2json(csvsFolder)
+
+        csv.findFiles();
+    }
+})
 
