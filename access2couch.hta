@@ -42,17 +42,86 @@ textarea {
 <script language="JavaScript">
 // Defines the application window's size.
 var APP_HEIGHT = 495,
-  APP_WIDTH  = 505;
+    APP_WIDTH  = 505
+
+
+function log(str) {
+    var textarea = document.getElementById('log') 
+    textarea.value += str + "\n"
+    textarea.scrollTop = textarea.scrollHeight;
+}
+
+function ForceRefresh() {
+    var shell = new ActiveXObject("WScript.Shell")
+    shell.Run("cmd /c", 0, true)
+}
+
+function exec(cmd, hide) {
+    var shell = new ActiveXObject("WScript.Shell")
+    var e = shell.Exec("%comspec% /c " + cmd + " 2>&1 ")
+
+    var all = ''
+    while(!e.StdOut.AtEndofStream) {
+        var line = trim(e.StdOut.ReadLine())
+        if(!hide) {
+            log(line)
+        }
+        all += line
+        ForceRefresh()
+    }
+    return all
+}
 
 // Initializes the application.
 function initialize() {
-  window.resizeTo(APP_WIDTH, APP_HEIGHT);
-  window.moveTo((screen.width - APP_WIDTH) / 2, (screen.height - APP_HEIGHT) / 2);
+    window.resizeTo(APP_WIDTH, APP_HEIGHT)
+    window.moveTo((screen.width - APP_WIDTH) / 2, (screen.height - APP_HEIGHT) / 2)
+
+}
+
+function trim(str) {
+    return str.replace(/^\s+|\s+$/g, "")
+}
+function startsWith(data, input) {
+    return data.substring(0, input.length) === input
+}
+function parseTables(str) {
+    str = str.split(',')
+    var arr = []
+    for(var i in str) {
+        str[i] = trim(str[i])
+        arr.push('"' + str[i] + '"')
+    }
+
+    return arr.join(" ")
+}
+
+function submit() {
+    var accessDbPath = '"'+document.getElementById('access_database').value+'"'
+    var tables = parseTables(document.getElementById('access_tables').value)
+    var couchDbUrl = document.getElementById('couch_server').value
+
+    var res = exec('node -v', true)
+    if(!startsWith(res, 'v')) {
+        alert("You don't have Node.js installed. Install it from http://nodejs.org")
+        return
+    }
+
+    res = exec('access2couch', true)
+    if(startsWith(res, "'access2couch'")) {
+        log("access2couch is not installed. Installing...")
+
+        exec('npm install access2couch')
+    }
+
+    res = exec('access2couch ' + accessDbPath + ' ' + tables + ' ' + couchDbUrl)
+    alert(res)
+
 }
 
 </script>
 </head>
-<body onload="initialize();" onhelp="onHelp();">
+<body onload="initialize();">
 
 <div style="float: left;">
 
@@ -83,7 +152,7 @@ function initialize() {
 
 <fieldset style="padding: 5px 5px 5px 5px;">
 <legend>&nbsp;Log&nbsp;</legend>
-<textarea readonly="readonly"></textarea>
+<textarea id="log" readonly="readonly"></textarea>
 
 </fieldset>
 
@@ -91,7 +160,7 @@ function initialize() {
 <table border="0" cellpadding="0" cellspacing="0">
   <tr>
     <td>
-      <input type="button" value="Submit" class="btn" onclick="clearForm();" />&nbsp;
+      <input type="button" value="Submit" class="btn" onclick="submit();" />&nbsp;
       <input type="button" value="Exit" class="btn" onclick="window.close();" />
     </td>
   </tr>
