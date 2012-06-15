@@ -97,14 +97,6 @@ function parseTables(str) {
 }
 
 function updates() {
-    exec('npm update access2couch -g')
-}
-
-function submit() {
-    var accessDbPath = '"'+document.getElementById('access_database').value+'"'
-    var tables = parseTables(document.getElementById('access_tables').value)
-    var couchDbUrl = document.getElementById('couch_server').value
-
     var res = exec('node -v', true)
     log('Checking if Node.js is installed')
     if(!startsWith(res, 'v')) {
@@ -119,6 +111,15 @@ function submit() {
 
         exec('npm install access2couch -g')
     }
+
+    log('Checking access2couch updates')
+    exec('npm update access2couch -g')
+}
+
+function submit() {
+    var accessDbPath = '"'+document.getElementById('access_database').value+'"'
+    var tables = parseTables(document.getElementById('access_tables').value)
+    var couchDbUrl = document.getElementById('couch_server').value
 
     log('Running export...')
     res = exec('access2couch ' + accessDbPath + ' ' + tables + ' ' + couchDbUrl)
