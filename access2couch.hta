@@ -111,7 +111,7 @@ function submit() {
     if(startsWith(res, "'access2couch'")) {
         log("access2couch is not installed. Installing...")
 
-        exec('npm install access2couch')
+        exec('npm install access2couch -g')
     }
 
     res = exec('access2couch ' + accessDbPath + ' ' + tables + ' ' + couchDbUrl)

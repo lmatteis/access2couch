@@ -9,7 +9,12 @@ var couchdb = require('felix-couchdb')
 var csv2json = require('./csv2json')
 
 var csvsFolder = './access2couch_csvs/'
-var args = process.argv.slice(2)
+var args = process.argv
+if(args.length && args[0] == 'node')
+    args = args.slice(2)
+} else if(args.length && args[0] != 'node') {
+    args = args.slice(1)
+}
 
 if(args.length < 3) {
     console.log('Usage:')
