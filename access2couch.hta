@@ -102,21 +102,22 @@ function submit() {
     var couchDbUrl = document.getElementById('couch_server').value
 
     var res = exec('node -v', true)
+    log('Checking if Node.js is installed')
     if(!startsWith(res, 'v')) {
-        alert("You don't have Node.js installed. Install it from http://nodejs.org")
+        log("You don't have Node.js installed. Install it from http://nodejs.org")
         return
     }
 
     res = exec('access2couch', true)
+    log('Checking if access2couch is installed')
     if(startsWith(res, "'access2couch'")) {
         log("access2couch is not installed. Installing...")
 
         exec('npm install access2couch -g')
     }
 
+    log('Running export...')
     res = exec('access2couch ' + accessDbPath + ' ' + tables + ' ' + couchDbUrl)
-    alert(res)
-
 }
 
 </script>
