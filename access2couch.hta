@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!--
+  access2couch.hta
+  Author: Luca Matteis (lmatteis@gmail.com)
+-->
+<head>
+<hta:application id="access2couch"
+  applicationName="access2couch.hta"
+  version="0.0.2"
+  border="dialog"
+  maximizebutton="no"
+  minimizebutton="no"
+  scroll="no"
+  selection="no"
+/>
+<title>access2couch</title>
+<style type="text/css">
+body {
+  background-color: menu;
+  font-family: sans-serif;
+  font-size: 10pt;
+}
+.btn {
+  width: 75px;
+}
+.result {
+  background-color: menu;
+  font-family: monospace;
+  width: 341px;
+}
+td.right {
+  text-align: right;
+}
+textarea {
+  width: 100%;
+  height: 260px;
+
+}
+</style>
+<script language="JavaScript">
+// Defines the application window's size.
+var APP_HEIGHT = 495,
+  APP_WIDTH  = 505;
+
+// Initializes the application.
+function initialize() {
+  window.resizeTo(APP_WIDTH, APP_HEIGHT);
+  window.moveTo((screen.width - APP_WIDTH) / 2, (screen.height - APP_HEIGHT) / 2);
+}
+
+</script>
+</head>
+<body onload="initialize();" onhelp="onHelp();">
+
+<div style="float: left;">
+
+<div style="float: left; padding-bottom: 3px;">
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td>Access Database:</td>
+    <td style="padding-left: 4px;">
+      <input type="file" id="access_database" style="font-family: monospace; width: 346px;" />
+    </td>
+  </tr>
+  <tr>
+    <td>Tables (comma separated):</td>
+    <td style="padding-left: 4px;">
+      <input type="text" id="access_tables" style="font-family: monospace; width: 346px;" />
+    </td>
+  </tr>
+  <tr>
+    <td>CouchDB server:</td>
+    <td style="padding-left: 4px;">
+      <input type="text" id="couch_server" style="font-family: monospace; width: 346px;" />
+    </td>
+  </tr>
+</table>
+</div>
+
+<p style="clear: both; margin: 10px 0 0 0;"></p>
+
+<fieldset style="padding: 5px 5px 5px 5px;">
+<legend>&nbsp;Log&nbsp;</legend>
+<textarea readonly="readonly"></textarea>
+
+</fieldset>
+
+<div style="padding-top: 15px; text-align: right;">
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td>
+      <input type="button" value="Submit" class="btn" onclick="clearForm();" />&nbsp;
+      <input type="button" value="Exit" class="btn" onclick="window.close();" />
+    </td>
+  </tr>
+</table>
+</div>
+
+</body>
+</html>
+
