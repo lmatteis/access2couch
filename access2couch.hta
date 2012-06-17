@@ -56,20 +56,25 @@ function ForceRefresh() {
     shell.Run("cmd /c", 0, true)
 }
 
-function exec(cmd, hide) {
+function exec(cmd, hide, cb) {
     var shell = new ActiveXObject("WScript.Shell")
     var e = shell.Exec("%comspec% /c " + cmd + " 2>&1 ")
 
     var all = ''
-    while(!e.StdOut.AtEndofStream) {
+    // check every 100ms if our line has changed, 
+    // and if we ended the stream
+    var intervalId = setInterval(function() {
         var line = trim(e.StdOut.ReadLine())
         if(!hide) {
             log(line)
         }
         all += line
-        ForceRefresh()
-    }
-    return all
+        if(e.StdOut.AtEndofStream) {
+            cb(all)
+            // it's over, clearInterval
+            clearInterval(intervalId)
+        }
+    }, 100)
 }
 
 // Initializes the application.
@@ -97,18 +102,17 @@ function parseTables(str) {
 }
 
 function updates() {
-    var res = exec('node -v', true)
     log('Checking if Node.js is installed')
+    var res = exec('node -v', true)
     if(!startsWith(res, 'v')) {
         log("You don't have Node.js installed. Install it from http://nodejs.org")
         return
     }
 
-    res = exec('access2couch', true)
     log('Checking if access2couch is installed')
+    res = exec('access2couch', true)
     if(startsWith(res, "'access2couch'")) {
         log("access2couch is not installed. Installing...")
-
         exec('npm install access2couch -g')
     }
 
