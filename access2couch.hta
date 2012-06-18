@@ -56,6 +56,18 @@ function ForceRefresh() {
     shell.Run("cmd /c", 0, true)
 }
 
+// http://msdn.microsoft.com/en-us/library/312a5kbt(v=vs.84).aspx
+function readLine(stdout) {
+    // use Read(chars) instead of ReadLine(), because ReadLine()
+    // stalls the interface really badly
+    var line = ''
+    do {
+        line += stdout.Read(1)
+    } while(!stdout.AtEndOfLine);
+
+    return line
+}
+
 function exec(cmd, cb, done) {
     var shell = new ActiveXObject("WScript.Shell")
     var e = shell.Exec("%comspec% /c " + cmd + " 2>&1")
@@ -63,8 +75,6 @@ function exec(cmd, cb, done) {
     // check every 100ms if our line has changed, 
     // and if we ended the stream
     var all = ''
-    var intervalId = setInterval(ping, 1000)
-    ping()
 
     function ping() {
         var line = trim(e.StdOut.ReadLine())
@@ -72,10 +82,13 @@ function exec(cmd, cb, done) {
         all += line
         if(e.StdOut.AtEndOfStream) {
             if(done) done(all)
-            // it's over, clearInterval
-            if(intervalId) clearInterval(intervalId)
+            return;
         }
+        // re-schedule
+        setTimeout(ping, 1000)
     }
+    setTimeout(ping, 1000)
+    ping()
 }
 
 // Initializes the application.
