@@ -56,26 +56,20 @@ function ForceRefresh() {
     shell.Run("cmd /c", 0, true)
 }
 
-function exec(cmd, cb, done) {
+function exec(cmd, hide, cb) {
     var shell = new ActiveXObject("WScript.Shell")
     var e = shell.Exec("%comspec% /c " + cmd + " 2>&1")
 
-    // check every 100ms if our line has changed, 
-    // and if we ended the stream
     var all = ''
-    var intervalId = setInterval(ping, 1000)
-    ping()
-
-    function ping() {
+    while(!e.StdOut.AtEndofStream) {
         var line = trim(e.StdOut.ReadLine())
-        if(cb) cb(line)
-        all += line
-        if(e.StdOut.AtEndOfStream) {
-            if(done) done(all)
-            // it's over, clearInterval
-            if(intervalId) clearInterval(intervalId)
+        if(!hide) {
+            log(line)
         }
+        all += line
+        ForceRefresh()
     }
+    return all
 }
 
 // Initializes the application.
@@ -104,27 +98,21 @@ function parseTables(str) {
 
 function updates() {
     log('Checking if Node.js is installed')
-    exec('node -v', false, function(res) {
-        if(!startsWith(res, 'v')) {
-            log("You don't have Node.js installed. Install it from http://nodejs.org")
-            return;
-        }
+    var res = exec('node -v', true)
+    if(!startsWith(res, 'v')) {
+        log("You don't have Node.js installed. Install it from http://nodejs.org")
+        return
+    }
 
-        log('Checking if access2couch is installed')
-        exec('access2couch', false, function(res) {
-            if(startsWith(res, "'access2couch'")) {
-                log("access2couch is not installed. Installing...")
-                exec('npm install access2couch -g', false, function(r) {
-                    log(r)
-                })
-            } else { // it's installed, check updates
-                log('Checking access2couch updates')
-                exec('npm update access2couch -g', false, function(r) {
-                    log(r)
-                })
-            }
-        })
-    })
+    log('Checking if access2couch is installed')
+    res = exec('access2couch', true)
+    if(startsWith(res, "'access2couch'")) {
+        log("access2couch is not installed. Installing...")
+        exec('npm install access2couch -g')
+    }
+
+    log('Checking access2couch updates')
+    exec('npm update access2couch -g')
 }
 
 function submit() {
@@ -135,9 +123,7 @@ function submit() {
     var couchDbUrl = document.getElementById('couch_server').value
 
     log('Running export...')
-    exec('access2couch ' + accessDbPath + ' ' + tables + ' ' + couchDbUrl, function(line) {
-        log(line)
-    })
+    res = exec('access2couch ' + accessDbPath + ' ' + tables + ' ' + couchDbUrl)
 }
 
 </script>
@@ -157,7 +143,7 @@ function submit() {
   <tr>
     <td>Tables (comma separated):</td>
     <td style="padding-left: 4px;">
-      <input type="text" id="access_tables" style="font-family: monospace; width: 346px;" value="MISSIONS_SAMPLES_SITES" />
+      <input type="text" id="access_tables" style="font-family: monospace; width: 346px;" value="MISSIONS_SAMPLES_SITES"/>
     </td>
   </tr>
   <tr>
