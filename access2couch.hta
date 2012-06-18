@@ -77,15 +77,15 @@ function exec(cmd, cb, done) {
     var all = ''
 
     function ping() {
-        var line = trim(e.StdOut.ReadLine())
+        var line = e.StdOut.ReadLine()
         if(cb) cb(line)
-        all += line
+        all += trim(line)
         if(e.StdOut.AtEndOfStream) {
             if(done) done(all)
             return;
         }
         // re-schedule
-        setTimeout(ping, 1000)
+        setTimeout(ping, 100)
     }
     ping()
 }
