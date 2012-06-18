@@ -18,7 +18,7 @@
 <title>access2couch</title>
 <style type="text/css">
 body {
-  background-color: menu;
+  background-color: Menu;
   font-family: sans-serif;
   font-size: 10pt;
 }
@@ -26,7 +26,7 @@ body {
   width: 75px;
 }
 .result {
-  background-color: menu;
+  background-color: Menu;
   font-family: monospace;
   width: 341px;
 }
@@ -56,25 +56,26 @@ function ForceRefresh() {
     shell.Run("cmd /c", 0, true)
 }
 
-function exec(cmd, hide, cb) {
+function exec(cmd, cb, done) {
     var shell = new ActiveXObject("WScript.Shell")
-    var e = shell.Exec("%comspec% /c " + cmd + " 2>&1 ")
+    var e = shell.Exec("%comspec% /c " + cmd + " 2>&1")
 
-    var all = ''
     // check every 100ms if our line has changed, 
     // and if we ended the stream
-    var intervalId = setInterval(function() {
+    var all = ''
+    var intervalId = setInterval(ping, 1000)
+    ping()
+
+    function ping() {
         var line = trim(e.StdOut.ReadLine())
-        if(!hide) {
-            log(line)
-        }
+        if(cb) cb(line)
         all += line
-        if(e.StdOut.AtEndofStream) {
-            cb(all)
+        if(e.StdOut.AtEndOfStream) {
+            if(done) done(all)
             // it's over, clearInterval
-            clearInterval(intervalId)
+            if(intervalId) clearInterval(intervalId)
         }
-    }, 100)
+    }
 }
 
 // Initializes the application.
@@ -103,30 +104,40 @@ function parseTables(str) {
 
 function updates() {
     log('Checking if Node.js is installed')
-    var res = exec('node -v', true)
-    if(!startsWith(res, 'v')) {
-        log("You don't have Node.js installed. Install it from http://nodejs.org")
-        return
-    }
+    exec('node -v', false, function(res) {
+        if(!startsWith(res, 'v')) {
+            log("You don't have Node.js installed. Install it from http://nodejs.org")
+            return;
+        }
 
-    log('Checking if access2couch is installed')
-    res = exec('access2couch', true)
-    if(startsWith(res, "'access2couch'")) {
-        log("access2couch is not installed. Installing...")
-        exec('npm install access2couch -g')
-    }
-
-    log('Checking access2couch updates')
-    exec('npm update access2couch -g')
+        log('Checking if access2couch is installed')
+        exec('access2couch', false, function(res) {
+            if(startsWith(res, "'access2couch'")) {
+                log("access2couch is not installed. Installing...")
+                exec('npm install access2couch -g', false, function(r) {
+                    log(r)
+                })
+            } else { // it's installed, check updates
+                log('Checking access2couch updates')
+                exec('npm update access2couch -g', false, function(r) {
+                    log(r)
+                })
+            }
+        })
+    })
 }
 
 function submit() {
-    var accessDbPath = '"'+document.getElementById('access_database').value+'"'
-    var tables = parseTables(document.getElementById('access_tables').value)
+    var accessDbPath = document.getElementById('access_database').value
+    if(accessDbPath) accessDbPath = '"' + accessDbPath + '"'
+    var tables = document.getElementById('access_tables').value
+    if(tables) parseTables(tables)
     var couchDbUrl = document.getElementById('couch_server').value
 
     log('Running export...')
-    res = exec('access2couch ' + accessDbPath + ' ' + tables + ' ' + couchDbUrl)
+    exec('access2couch ' + accessDbPath + ' ' + tables + ' ' + couchDbUrl, function(line) {
+        log(line)
+    })
 }
 
 </script>
@@ -146,13 +157,13 @@ function submit() {
   <tr>
     <td>Tables (comma separated):</td>
     <td style="padding-left: 4px;">
-      <input type="text" id="access_tables" style="font-family: monospace; width: 346px;" />
+      <input type="text" id="access_tables" style="font-family: monospace; width: 346px;" value="MISSIONS_SAMPLES_SITES" />
     </td>
   </tr>
   <tr>
     <td>CouchDB server:</td>
     <td style="padding-left: 4px;">
-      <input type="text" id="couch_server" style="font-family: monospace; width: 346px;" />
+      <input type="text" id="couch_server" style="font-family: monospace; width: 346px;" value="http://192.168.20.251:5984/geosite" />
     </td>
   </tr>
 </table>
