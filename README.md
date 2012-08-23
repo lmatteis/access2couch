@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/lmatteis/access2couch.png)](http://travis-ci.org/lmatteis/access2couch)
 access2couch
 ============
 
